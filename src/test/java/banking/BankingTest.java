@@ -63,7 +63,7 @@ public class BankingTest {
 		assertEquals("Balance incorrecte !", before0 - amount, myDAO.balanceForCustomer(fromCustomer), 0.001f);
 		assertEquals("Balance incorrecte !", before1 + amount, myDAO.balanceForCustomer(toCustomer), 0.001f);				
 	}
-        
+        /*
         @Test(expected=Exception.class)
         public void accountBalanceBecomesNegative() throws Exception{
                 float amount = 100.0f;
@@ -81,7 +81,44 @@ public class BankingTest {
             
             myDAO.bankTransferTransaction(from, to, amount);
             
-        }
+        }*/
+        
+        /*Correction*/
+        
+        @Test
+	public void insufficientBalance() throws SQLException {
+		float before0 = myDAO.balanceForCustomer(0);
+		float before1 = myDAO.balanceForCustomer(1);
+		try {	// On essaie de trop débiter
+			myDAO.bankTransferTransaction(0, 1, before0 + 10f);
+			fail("On doit avoir une exception");
+		} catch (Exception ex) { }
+		// Rien ne doit avoir changé
+		assertEquals("Balance incorrecte !", before0, myDAO.balanceForCustomer(0), 0.001f);
+		assertEquals("Balance incorrecte !", before1, myDAO.balanceForCustomer(1), 0.001f);		
+	}
+	
+	@Test
+	public void unknownDebitor() throws SQLException {
+		float before1 = myDAO.balanceForCustomer(1);
+		try {   // On essaie débiter un client inconnu
+			myDAO.bankTransferTransaction(99, 1, 10f);
+			fail("On doit avoir une exception");
+		} catch (Exception ex) {}
+		// Rien ne doit avoir changé
+		assertEquals("Balance incorrecte !", before1, myDAO.balanceForCustomer(1), 0.001f);		
+	}
+
+	@Test
+	public void unknownCreditor() throws SQLException {
+		float before1 = myDAO.balanceForCustomer(1);
+		try {   // On essaie créditer un client inconnu
+			myDAO.bankTransferTransaction(1, 99, 10f);
+			fail("On doit avoir une exception");
+		} catch (Exception ex) {}
+		// Rien ne doit avoir changé
+		assertEquals("Balance incorrecte !", before1, myDAO.balanceForCustomer(1), 0.001f);		
+	}
 	
 
 	public static DataSource getDataSource() throws SQLException {
